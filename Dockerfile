@@ -29,6 +29,9 @@ RUN npm ci --only=production
 # Copy compiled JavaScript from builder stage
 COPY --from=builder /usr/src/app/dist/ ./dist/
 
+# Copy the sample cases file for caching
+COPY SUST_Preli_Sample_Cases.json ./
+
 # Set default environment variables
 ENV PORT=8000
 ENV NODE_ENV=production
