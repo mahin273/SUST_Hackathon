@@ -7,10 +7,7 @@
     "build": "tsc",
     "start": "node dist/src/index.js",
     "dev": "ts-node src/index.ts",
-    "test:local": "ts-node scripts/testLocal.ts",
-    "docker:build": "docker build -t queuestorm-investigator .",
-    "docker:run": "docker run --rm -d -p 8000:8000 --env-file .env --name queuestorm-container queuestorm-investigator",
-    "docker:stop": "docker stop queuestorm-container || true"
+    "test:local": "ts-node scripts/testLocal.ts"
   },
   "dependencies": {
     "@google/genai": "^0.10.0",
