@@ -59,14 +59,32 @@ This script runs our API against the 10 sample cases in `SUST_Preli_Sample_Cases
 
 The service is fully containerized using an optimized multi-stage build.
 
+### Option A: Using NPM Script Shortcuts (Simplest)
+
 1. **Build the Docker Image:**
    ```bash
-   docker build -t username/queuestorm-investigator:latest .
+   npm run docker:build
    ```
-2. **Run the Container:**
+2. **Run the Container (runs in background, automatically cleaning up on exit):**
    ```bash
-   docker run -p 8000:8000 -e GEMINI_API_KEY=your_gemini_api_key username/queuestorm-investigator:latest
+   npm run docker:run
    ```
+3. **Stop and Clean Up the Container:**
+   ```bash
+   npm run docker:stop
+   ```
+
+### Option B: Standard Docker Commands
+
+1. **Build the Docker Image:**
+   ```bash
+   docker build -t queuestorm-investigator .
+   ```
+2. **Run the Container (running interactively, automatically cleaning up on Ctrl+C):**
+   ```bash
+   docker run --rm -p 8000:8000 --env-file .env queuestorm-investigator
+   ```
+
 3. **Verify Health:**
    ```bash
    curl http://localhost:8000/health
