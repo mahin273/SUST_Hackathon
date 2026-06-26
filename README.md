@@ -55,9 +55,28 @@ This script runs our API against the 10 sample cases in `SUST_Preli_Sample_Cases
 
 ---
 
-## 🐳 Docker Deployment
+## 🐳 Docker & Docker Compose Deployment
 
 The service is fully containerized using an optimized multi-stage build.
+
+### Option A: Using Docker Compose (Simplest)
+
+If you have Docker Compose installed (works exactly the same on Fedora as on Windows):
+
+1. **Build and Start the Service:**
+   ```bash
+   docker compose up --build
+   ```
+   *(Or `sudo docker compose up --build` depending on your permissions)*
+   This will automatically load environment variables from `.env`, build the image, and bind port `8000`.
+
+2. **Stop and Clean Up:**
+   Press `Ctrl+C` in the running terminal, then run:
+   ```bash
+   docker compose down
+   ```
+
+### Option B: Standard Docker Commands
 
 1. **Build the Docker Image:**
    ```bash
