@@ -23,17 +23,17 @@ This service exposes `GET /health` and `POST /analyze-ticket` as specified in th
    npm install
    ```
 3. **Configure Environment Variables:**
-   Copy the example environment file and open `.env` to input your API key:
+   Copy the example environment file and open `.env` to input your API key(s):
    ```bash
    cp .env.example .env
    ```
    Edit `.env` and configure:
    ```env
    PORT=8000
-   GEMINI_API_KEY=your_free_gemini_api_key_here
+   GEMINI_API_KEY=your_gemini_api_key_here
    GEMINI_MODEL=gemini-2.5-flash
    ```
-   *Note: Get your 100% free Gemini API key in 30 seconds at [Google AI Studio](https://aistudio.google.com/). No billing details required.*
+   *Note: To bypass daily free tier rate limits (such as Google's 20 requests/day cap), you can supply multiple comma-separated keys (e.g. `GEMINI_API_KEY=key1,key2,key3`). The server will automatically failover and rotate through them on `429 Rate Limit` responses.*
 
 ### Running the Server
 - **Development Mode (Hot Reloading):**

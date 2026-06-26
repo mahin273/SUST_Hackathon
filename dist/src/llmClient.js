@@ -41,8 +41,11 @@ try {
 catch (cacheError) {
     console.warn('Failed to load sample cases cache:', cacheError);
 }
-// Initialize the Google Gen AI client with the configured API key
-const ai = new genai_1.GoogleGenAI({ apiKey: config_1.config.geminiApiKey });
+// Initialize the Google Gen AI client with the configured API keys
+const clients = config_1.config.geminiApiKeys.length > 0
+    ? config_1.config.geminiApiKeys.map(key => new genai_1.GoogleGenAI({ apiKey: key }))
+    : [new genai_1.GoogleGenAI({ apiKey: '' })];
+let currentClientIndex = 0;
 /**
  * Wraps a promise with a timeout. If the promise does not resolve within the specified timeout,
  * it rejects with a timeout error.
@@ -88,27 +91,42 @@ Analyze the following ticket:
 `;
     // Timeout set to 25 seconds (leaving 5 seconds for Express middleware / safety guardrails)
     const TIMEOUT_MS = 25000;
-    try {
-        const apiCall = ai.models.generateContent({
-            model: config_1.config.geminiModel,
-            contents: userMessage,
-            config: {
-                systemInstruction: prompts_1.SYSTEM_PROMPT,
-                // Enforce structured JSON mode at the API level
-                responseMimeType: 'application/json',
-            },
-        });
-        const response = await withTimeout(apiCall, TIMEOUT_MS);
-        const text = response.text;
-        if (!text) {
-            throw new Error('Gemini API returned an empty text field.');
+    // Loop through clients in case of rate limits
+    let lastError;
+    for (let attempt = 0; attempt < clients.length; attempt++) {
+        const clientIndex = (currentClientIndex + attempt) % clients.length;
+        const ai = clients[clientIndex];
+        try {
+            const apiCall = ai.models.generateContent({
+                model: config_1.config.geminiModel,
+                contents: userMessage,
+                config: {
+                    systemInstruction: prompts_1.SYSTEM_PROMPT,
+                    // Enforce structured JSON mode at the API level
+                    responseMimeType: 'application/json',
+                },
+            });
+            const response = await withTimeout(apiCall, TIMEOUT_MS);
+            const text = response.text;
+            if (!text) {
+                throw new Error('Gemini API returned an empty text field.');
+            }
+            // Update the active client index to the successful one
+            currentClientIndex = clientIndex;
+            // Parse the JSON string from Gemini
+            const resultJson = JSON.parse(text);
+            return resultJson;
         }
-        // Parse the JSON string from Gemini
-        const resultJson = JSON.parse(text);
-        return resultJson;
+        catch (error) {
+            console.error(`Error during Gemini analysis with Key #${clientIndex} for Ticket ${ticket.ticket_id}:`, error);
+            lastError = error;
+            // If it is a 429 error and we have more keys, switch to the next key for the next attempt
+            if (error.message && error.message.includes('429') && clients.length > 1) {
+                console.warn(`Key #${clientIndex} hit rate limit (429). Rotating to the next key...`);
+                continue;
+            }
+            throw error;
+        }
     }
-    catch (error) {
-        console.error(`Error during Gemini analysis for Ticket ${ticket.ticket_id}:`, error);
-        throw error;
-    }
+    throw lastError;
 }
